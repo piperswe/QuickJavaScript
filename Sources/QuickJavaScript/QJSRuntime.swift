@@ -8,21 +8,11 @@
 import Foundation
 import QuickJSNG
 
-private func qjsRuntimeFinalizer(
-  runtime: OpaquePointer?, arg: UnsafeMutableRawPointer?
-) {
-  if let arg = arg {
-    let container: QJSFinalizerContainer = bridge(ptr: arg)
-    container.inner()
-  }
-}
-
 class QJSRuntime {
   internal let inner: OpaquePointer
 
   // these exist as RC pins to ensure their lifetimes are long enough
   private var runtimeInfo: Data? = nil
-  private var finalizers: [QJSFinalizerContainer] = []
 
   internal init(inner: OpaquePointer) {
     self.inner = inner
@@ -77,13 +67,6 @@ class QJSRuntime {
   // used to check stack overflow
   func updateStackTop() {
     JS_UpdateStackTop(inner)
-  }
-
-  func addRuntimeFinalizer(_ f: @escaping QJSFinalizer) {
-    let container = QJSFinalizerContainer(f)
-    finalizers.append(container)
-    JS_AddRuntimeFinalizer(
-      inner, qjsRuntimeFinalizer, bridgeMutating(obj: container))
   }
 
   func runGC() {

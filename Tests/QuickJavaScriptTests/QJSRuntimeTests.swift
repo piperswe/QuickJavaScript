@@ -59,16 +59,4 @@ import Testing
     _ = context.inner
     #expect(context.runtime === runtime)
   }
-
-  @Test func canAddRuntimeFinalizer() {
-    let runtime = QJSRuntime()
-    var finalizerExecuted = false
-    runtime.addRuntimeFinalizer {
-      finalizerExecuted = true
-    }
-    // Finalizer will be called when runtime is deallocated
-    // We can't easily test this synchronously, but we can verify
-    // that adding the finalizer doesn't crash
-    _ = finalizerExecuted
-  }
 }
