@@ -4,11 +4,11 @@
 import PackageDescription
 
 let package = Package(
-  name: "QuickJS-NG-SwiftPM",
+  name: "QuickJavaScript",
   products: [
     // Products define the executables and libraries a package produces, making them visible to other packages.
     .library(
-      name: "QuickJS-NG-SwiftPM",
+      name: "QuickJavaScript",
       targets: ["QuickJSNG", "QuickJavaScript"]
     )
   ],
