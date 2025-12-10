@@ -4,4 +4,11 @@ A thin Swift wrapper around QuickJS-NG
 
 ## Updating QuickJS-NG
 
-Get the amalgam files from https://github.com/quickjs-ng/quickjs/releases
+```bash
+cd Sources/QuickJSNG
+git fetch origin
+git checkout <latest version>
+cd ../..
+git add Sources/QuickJSNG
+git commit -m "Update QuickJS-NG to <version>"
+```

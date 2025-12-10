@@ -1,0 +1,3 @@
+[submodule "Sources/QuickJSNG"]
+	path = Sources/QuickJSNG
+	url = https://github.com/quickjs-ng/quickjs.git

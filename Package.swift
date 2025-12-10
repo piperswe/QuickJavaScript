@@ -17,7 +17,26 @@ let package = Package(
     // Targets can depend on other targets in this package and products from dependencies.
     .target(
       name: "QuickJSNG",
-      publicHeadersPath: "Includes"
+      sources: [
+        "cutils.c",
+        "cutils.h",
+        "dtoa.c",
+        "dtoa.h",
+        "libregexp.c",
+        "libregexp.h",
+        "libregexp-opcode.h",
+        "libunicode.c",
+        "libunicode.h",
+        "libunicode-table.h",
+        "list.h",
+        "quickjs-atom.h",
+        "quickjs.c",
+        "quickjs-c-atomics.h",
+        "quickjs.h",
+        "quickjs-opcode.h",
+        "builtin-array-fromasync.h",
+      ],
+      publicHeadersPath: "."
     ),
     .target(
       name: "QuickJavaScript",
