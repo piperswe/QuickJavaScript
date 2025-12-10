@@ -1,0 +1,1 @@
+typealias QJSFinalizer = () -> Void
