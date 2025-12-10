@@ -94,4 +94,17 @@ class QJSContext {
     }
     return value(inner: result)
   }
+
+  var globalThis: QJSValue {
+    return value(inner: JS_GetGlobalObject(inner))
+  }
+
+  func newAtom(string: String) -> JSAtom {
+    return string.utf8CString.withUnsafeBytes { bytes in
+      let byteCountWithoutFinalNull = bytes.count - 1
+      return JS_NewAtomLen(
+        self.inner, bytes.assumingMemoryBound(to: CChar.self).baseAddress, byteCountWithoutFinalNull
+      )
+    }
+  }
 }

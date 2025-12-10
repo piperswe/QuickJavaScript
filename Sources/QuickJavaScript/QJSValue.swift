@@ -205,6 +205,18 @@ class QJSValue: CustomStringConvertible {
     return JS_IsDate(inner)
   }
 
+  var isObject: Bool {
+    return JS_IsObject(inner)
+  }
+
+  var isUndefined: Bool {
+    return JS_IsUndefined(inner)
+  }
+
+  var isNull: Bool {
+    return JS_IsNull(inner)
+  }
+
   func getProperty(atom: JSAtom) -> QJSValue {
     return QJSValue(context: context, inner: JS_GetProperty(context.inner, inner, atom))
   }
@@ -238,7 +250,8 @@ class QJSValue: CustomStringConvertible {
 
   func setProperty(str: String, value: QJSValue) {
     let _ = str.withCString { cString in
-      JS_SetPropertyStr(self.context.inner, self.inner, cString, JS_DupValue(self.context.inner, value.inner))
+      JS_SetPropertyStr(
+        self.context.inner, self.inner, cString, JS_DupValue(self.context.inner, value.inner))
     }
   }
 
@@ -256,6 +269,10 @@ class QJSValue: CustomStringConvertible {
 
   func deleteProperty(_ atom: JSAtom, flags: CInt = 0) {
     JS_DeleteProperty(context.inner, inner, atom, flags)
+  }
+
+  func deleteProperty(str: String, flags: CInt = 0) {
+    deleteProperty(context.newAtom(string: str), flags: flags)
   }
 
   var prototype: QJSValue {

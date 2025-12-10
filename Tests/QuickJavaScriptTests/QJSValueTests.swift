@@ -320,8 +320,9 @@ import Testing
     let context = runtime.newContext()
     // Use JavaScript to test property deletion
     _ = context.eval(code: "globalThis.testObj = {name: 'test', age: 30}")
-    let result = context.eval(code: "delete testObj.name; testObj.name === undefined")
-    #expect(result.description == "true")
+    #expect(context.globalThis.getProperty(str: "testObj").isObject)
+    context.globalThis.deleteProperty(str: "testObj")
+    #expect(context.globalThis.getProperty(str: "testObj").isUndefined)
   }
 
   @Test func canGetPrototype() {
