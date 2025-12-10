@@ -190,4 +190,30 @@ import Testing
     #expect(result.string() == "Hello World")
     #expect(context.currentException == nil)
   }
+
+  @Test func jsonRoundTrip() {
+    let runtime = QJSRuntime()
+    let context = runtime.newContext()
+    let parsed = context.parse(json: "{ \"hello\": \"world\" }")
+    #expect(parsed.isObject)
+    #expect(parsed.hasProperty(str: "hello"))
+    #expect(parsed.getProperty(str: "hello") == context.value(string: "world"))
+    let serialized = parsed.jsonStringify()
+    #expect(serialized == "{\"hello\":\"world\"}")
+  }
+
+  @Test func defineFunction() {
+    let runtime = QJSRuntime()
+    let context = runtime.newContext()
+    let fn = context.value { (this: QJSValue, args: [QJSValue]) in
+      if args.count == 2 {
+        return context.value(number: args[0].toFloat64() + args[1].toFloat64())
+      } else {
+        return context.value(number: -1)
+      }
+    }
+    context.globalThis.setProperty(str: "f", value: fn)
+    let result = context.eval(code: "f(1, 2)")
+    #expect(result == context.value(number: 3))
+  }
 }

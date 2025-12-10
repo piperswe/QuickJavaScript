@@ -82,7 +82,7 @@ class QJSValue: CustomStringConvertible, Equatable {
   // RC pin to ensure it doesn't get freed from under us
   let context: QJSContext
 
-  private let inner: JSValue
+  internal let inner: JSValue
 
   let tag: Tag
 
@@ -259,6 +259,10 @@ class QJSValue: CustomStringConvertible, Equatable {
     return JS_HasProperty(context.inner, inner, atom) != 0
   }
 
+  func hasProperty(str: String) -> Bool {
+    return hasProperty(context.newAtom(string: str))
+  }
+
   var extensible: Bool {
     return JS_IsExtensible(context.inner, inner) != 0
   }
@@ -359,5 +363,10 @@ class QJSValue: CustomStringConvertible, Equatable {
 
   static func == (lhs: QJSValue, rhs: QJSValue) -> Bool {
     return lhs.strictEqual(to: rhs)
+  }
+
+  func jsonStringify() -> String {
+    let result = JS_JSONStringify(context.inner, inner, context.null.inner, context.null.inner)
+    return context.value(inner: result).description
   }
 }

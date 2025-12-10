@@ -1,10 +1,13 @@
 import QuickJSNG
 
+typealias QJSFunction = (_ this: QJSValue, _ args: [QJSValue]) -> QJSValue
+
 class QJSContext {
   // RC pin to ensure it doesn't get freed from under us
   let runtime: QJSRuntime
 
   internal let inner: OpaquePointer
+  internal var functions: [QJSFunction] = []
 
   internal init(runtime: QJSRuntime, inner: OpaquePointer) {
     self.runtime = runtime
@@ -15,6 +18,13 @@ class QJSContext {
     self.init(runtime: runtime, inner: runtime.newRawContext())
     // set the runtime as the opaque, and manage the opaque (if needed) in swift-land
     JS_SetContextOpaque(inner, UnsafeMutableRawPointer(mutating: bridge(obj: self)))
+  }
+
+  static internal func retrieve(fromOpaque: OpaquePointer) -> QJSContext? {
+    guard let me = JS_GetContextOpaque(fromOpaque) else {
+      return nil
+    }
+    return bridge(ptr: me)
   }
 
   deinit {
@@ -101,6 +111,46 @@ class QJSContext {
     return value(inner: val)
   }
 
+  func value(function: @escaping QJSFunction, name: String = "")
+    -> QJSValue
+  {
+    let cfunc:
+      @convention(c) (OpaquePointer?, JSValue, Int32, UnsafeMutablePointer<JSValue>?, Int32) ->
+        JSValue = {
+          (
+            _ ctx: OpaquePointer?, _ this: JSValue, _ argc: CInt,
+            _ argv: UnsafeMutablePointer<JSValue>?,
+            _ magic: CInt
+          ) in
+          guard let ctx = ctx else {
+            // TODO: throw an exception
+            return JSValue(u: JSValueUnion(int32: 0), tag: Int64(JS_TAG_NULL))
+          }
+          guard let ctx = QJSContext.retrieve(fromOpaque: ctx) else {
+            // TODO: throw an exception
+            return JSValue(u: JSValueUnion(int32: 0), tag: Int64(JS_TAG_NULL))
+          }
+          let fn = ctx.functions[Int(magic)]
+          var args: [QJSValue] = []
+          if let argv = argv {
+            for i in 0..<Int(argc) {
+              args.append(ctx.value(inner: argv.advanced(by: i).pointee))
+            }
+          }
+          return fn(ctx.value(inner: this), args).inner
+        }
+    let magic = functions.count
+    functions.append(function)
+    let val = name.utf8CString.withUnsafeBytes { bytes in
+      let byteCountWithoutFinalNull = bytes.count - 1
+      return JS_NewCFunctionMagic(
+        inner,
+        cfunc, bytes.baseAddress, Int32(byteCountWithoutFinalNull),
+        JS_CFUNC_generic_magic, Int32(magic))
+    }
+    return value(inner: val)
+  }
+
   func eval(code: String, filename: String = "input", flags: Int32 = 0) -> QJSValue {
     let result = code.utf8CString.withUnsafeBytes { bytes in
       let byteCountWithoutFinalNull = bytes.count - 1
@@ -130,6 +180,20 @@ class QJSContext {
       return val
     } else {
       return nil
+    }
+  }
+
+  func parse(json: String, filename: String = "file") -> QJSValue {
+    return json.utf8CString.withUnsafeBytes { bytes in
+      let byteCountWithoutFinalNull = bytes.count - 1
+      return filename.withCString { filename in
+        return self.value(
+          inner: JS_ParseJSON(
+            self.inner, bytes.assumingMemoryBound(to: CChar.self).baseAddress,
+            byteCountWithoutFinalNull, filename
+          )
+        )
+      }
     }
   }
 }
