@@ -92,6 +92,10 @@ class QJSValue: CustomStringConvertible {
     self.tag = Tag.from(inner.tag)
   }
 
+  deinit {
+    JS_FreeValue(context.inner, inner)
+  }
+
   func int32() -> Int32? {
     if tag == .int {
       return inner.u.int32
@@ -127,6 +131,14 @@ class QJSValue: CustomStringConvertible {
   func string() -> String? {
     if tag == .string {
       return description
+    } else {
+      return nil
+    }
+  }
+
+  func bool() -> Bool? {
+    if tag == .bool {
+      return inner.u.int32 == 1
     } else {
       return nil
     }
@@ -198,7 +210,7 @@ class QJSValue: CustomStringConvertible {
   }
 
   func setProperty(atom: JSAtom, value: QJSValue) {
-    JS_SetProperty(context.inner, inner, atom, value.inner)
+    JS_SetProperty(context.inner, inner, atom, JS_DupValue(context.inner, value.inner))
   }
 
   func getProperty(uint32: UInt32) -> QJSValue {
@@ -206,7 +218,7 @@ class QJSValue: CustomStringConvertible {
   }
 
   func setProperty(uint32: UInt32, value: QJSValue) {
-    JS_SetPropertyUint32(context.inner, inner, uint32, value.inner)
+    JS_SetPropertyUint32(context.inner, inner, uint32, JS_DupValue(context.inner, value.inner))
   }
 
   func getProperty(int64: Int64) -> QJSValue {
@@ -214,7 +226,7 @@ class QJSValue: CustomStringConvertible {
   }
 
   func setProperty(int64: Int64, value: QJSValue) {
-    JS_SetPropertyInt64(context.inner, inner, int64, value.inner)
+    JS_SetPropertyInt64(context.inner, inner, int64, JS_DupValue(context.inner, value.inner))
   }
 
   func getProperty(str: String) -> QJSValue {
@@ -226,7 +238,7 @@ class QJSValue: CustomStringConvertible {
 
   func setProperty(str: String, value: QJSValue) {
     let _ = str.withCString { cString in
-      JS_SetPropertyStr(self.context.inner, self.inner, cString, value.inner)
+      JS_SetPropertyStr(self.context.inner, self.inner, cString, JS_DupValue(self.context.inner, value.inner))
     }
   }
 
