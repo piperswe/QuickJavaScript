@@ -50,5 +50,6 @@ let package = Package(
       name: "QuickJavaScriptTests",
       dependencies: ["QuickJavaScript"]
     ),
-  ]
+  ],
+  swiftLanguageModes: [.v6]
 )
